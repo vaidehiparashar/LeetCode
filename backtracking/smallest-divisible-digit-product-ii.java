@@ -1,127 +1,131 @@
 class Solution {
-private:
-    bool isInvalid(long long n) {
-        for (int i = 2; i < 10; i++) {
-            while (n % i == 0) {
-                n /= i;
-            }
-        }
-        return n != 1;
-    }
+    int primes[] = new int[] { 2, 3, 5, 7 };
+    int maxPrime = primes[primes.length - 1];
 
-    int minDigitsNeeded(long long t) {
-        if (t <= 1) {
-            return 0;
-        }
+    public String smallestNumber(String num, long t) {
+        int primeCount[] = new int[maxPrime + 1];
+        int numLength = num.length();
+        int minLength;
+        int firstZeroIndexFromLeft = 0;
 
-        int count = 0;
-
-        for (int d = 9; d >= 2; d--) {
-            while (t % d == 0) {
-                count++;
-                t /= d;
+        for (int prime : primes) {
+            while (t % prime == 0) {
+                t /= prime;
+                primeCount[prime]++;
             }
         }
 
-        return count;
-    }
-
-    string getMore(long long t) {
-        string sol = "";
-
-        while (t != 1) {
-            int curr = 9;
-
-            while (curr > 1 && (t % curr != 0)) {
-                curr--;
-            }
-
-            sol.push_back(char(curr + '0'));
-            t /= curr;
-        }
-
-        reverse(sol.begin(), sol.end());
-        return sol;
-    }
-
-    long long reduceT(long long t, int d) {
-        for (int f = 9; f >= 2; f--) {
-            while (d % f == 0 && t % f == 0) {
-                t /= f;
-                d /= f;
-            }
-        }
-
-        return t;
-    }
-
-public:
-    string smallestNumber(string num, long long t) {
-        int n = num.size();
-
-        if (isInvalid(t)) {
+        if (t != 1) {
             return "-1";
         }
 
-        int zeroIdx = -1;
+        minLength = getMinLength(primeCount);
 
-        for (int i = 0; i < n; i++) {
-            if (num[i] == '0') {
-                zeroIdx = i;
-                break;
-            }
+        if (numLength < minLength) {
+            return buildSuffix(primeCount, minLength, new char[minLength]);
         }
 
-        if (zeroIdx == -1) {
-            long long tempT = t;
+        char[] result = new char[numLength + 1];
 
-            for (char c : num) {
-                tempT = reduceT(tempT, c - '0');
-            }
+        for (int i = 0; firstZeroIndexFromLeft < numLength
+                && (result[++i] = num.charAt(firstZeroIndexFromLeft)) != '0'; firstZeroIndexFromLeft++) {
+            logNum(primeCount, result[i], -1);
+        }
 
-            if (tempT == 1) {
+        if (getMinLength(primeCount) == 0) {
+            if (firstZeroIndexFromLeft == numLength) {
                 return num;
             }
+            Arrays.fill(result, ++firstZeroIndexFromLeft, result.length, '1');
+            return new String(result, 1, numLength);
         }
 
-        int maxPrefix = (zeroIdx == -1) ? n : zeroIdx;
-
-        vector<long long> prefixT(n + 1, t);
-
-        for (int i = 0; i < maxPrefix; i++) {
-            prefixT[i + 1] = reduceT(prefixT[i], num[i] - '0');
-        }
-
-        for (int i = maxPrefix - 1; i >= 0; i--) {
-            int remainingLen = n - 1 - i;
-            int startDigit = (num[i] - '0') + 1;
-
-            for (int d = startDigit; d <= 9; d++) {
-                long long remT = reduceT(prefixT[i], d);
-
-                if (minDigitsNeeded(remT) <= remainingLen) {
-                    string sol = num.substr(0, i);
-                    sol.push_back(char(d + '0'));
-
-                    string suffix = getMore(remT);
-
-                    while ((int)suffix.size() < remainingLen) {
-                        suffix = "1" + suffix;
-                    }
-
-                    return sol + suffix;
+        for (int last = numLength - 1, end = Math.min(firstZeroIndexFromLeft, last); end >= 0; end--) {
+            for (logNum(primeCount, result[end + 1], 1); ++result[end + 1] <= '9'; logNum(primeCount, result[end + 1], 1)) {
+                logNum(primeCount, result[end + 1], -1);
+                if (getMinLength(primeCount) <= last - end) {
+                    return buildSuffix(primeCount, last - end, result);
                 }
             }
         }
 
-        int reqLen = max(n + 1, minDigitsNeeded(t));
+        return buildSuffix(primeCount, result.length, result);
+    }
 
-        string sol = getMore(t);
-
-        while ((int)sol.size() < reqLen) {
-            sol = "1" + sol;
+    void logNum(int[] primeCount, int num, int value) {
+        if (num < '2') {
+            return;
         }
 
-        return sol;
+        if (num == '9') {
+            primeCount[3] += value << 1;
+        } else if (num == '4') {
+            primeCount[2] += value << 1;
+        } else if (num == '8') {
+            primeCount[2] += value * 3;
+        } else if (num == '6') {
+            primeCount[2] += value;
+            primeCount[3] += value;
+        } else {
+            primeCount[num - '0'] += value;
+        }
     }
-};
+
+    String buildSuffix(int[] primeCount, int targetLength, char[] result) {
+        int index = result.length;
+
+        while (primeCount[3] > 1) {
+            primeCount[3] -= 2;
+            result[--index] = '9';
+        }
+
+        while (primeCount[2] > 2) {
+            primeCount[2] -= 3;
+            result[--index] = '8';
+        }
+
+        while (primeCount[7]-- > 0) {
+            result[--index] = '7';
+        }
+
+        if (primeCount[2] > 0 && primeCount[3] > 0) {
+            result[--index] = '6';
+            primeCount[2]--;
+            primeCount[3]--;
+        }
+
+        while (primeCount[5]-- > 0) {
+            result[--index] = '5';
+        }
+
+        while (primeCount[2] > 1) {
+            primeCount[2] -= 2;
+            result[--index] = '4';
+        }
+
+        while (primeCount[3] > 0) {
+            primeCount[3]--;
+            result[--index] = '3';
+        }
+
+        while (primeCount[2] > 0) {
+            primeCount[2]--;
+            result[--index] = '2';
+        }
+
+        while (index + targetLength != result.length) {
+            result[--index] = '1';
+        }
+
+        return targetLength == result.length ? new String(result) : new String(result, 1, result.length - 1);
+    }
+
+    int getMinLength(int[] primeCount) {
+        int count2 = Math.max(0, primeCount[2]);
+        int count3 = Math.max(0, primeCount[3]);
+        int count23 = (count3 & 1) + (count2 % 3);
+
+        return (count3 >> 1) + (count2 / 3) + Math.max(0, primeCount[7]) + Math.max(0, primeCount[5])
+                + (count23 == 3 ? 2 : count23 > 0 ? 1 : 0);
+    }
+}
