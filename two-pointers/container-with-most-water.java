@@ -4,8 +4,8 @@ class Solution {
         int left = 0;
         int maxArea  = 0;
         while(left<right){
-            maxArea = Math.max(maxArea, (right- left)* Math.min(height[left], height[rigth]));
-            if(heigth[left]<heigth[right]){
+            maxArea = Math.max(maxArea, (right- left)* Math.min(height[left],height[right]));
+            if(height[left]<heigth[right]){
                 left++;
             } else {
                 right --;
