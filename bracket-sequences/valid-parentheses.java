@@ -9,7 +9,7 @@ class Solution {
             char c = s.charAt(i);
             if(mapping.containsValue(c)){
                 stack.push(c);
-                else(mapping.containsKey(c)) {
+               if else(mapping.containsKey(c)) {
         if (stack.isEmpty() || mapping.get(c) != stack.pop()) {
             return false;
             }
