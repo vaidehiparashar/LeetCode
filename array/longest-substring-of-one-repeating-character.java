@@ -49,29 +49,29 @@ class Solution {
             int lenL = mid - l + 1;
             int lenR = r - mid;
 
-            // Prefix initially comes from the left child
+            
             pre[node] = pre[left];
 
-            // Suffix initially comes from the right child
+            
             suf[node] = suf[right];
 
-            // Best answer is initially the best of either child
+            
             best[node] = Math.max(best[left], best[right]);
 
-            // Can the repeating sequence cross the boundary?
+            
             if (cs[mid] == cs[mid + 1]) {
 
-                // Entire left segment has the same character
+                
                 if (pre[left] == lenL) {
                     pre[node] = lenL + pre[right];
                 }
 
-                // Entire right segment has the same character
+                
                 if (suf[right] == lenR) {
                     suf[node] = lenR + suf[left];
                 }
 
-                // Combine suffix of left + prefix of right
+                
                 best[node] = Math.max(
                     best[node],
                     suf[left] + pre[right]
